@@ -2,19 +2,15 @@ import csv
 import re
 import time
 
-
 import numpy as np
 from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
 from textblob import TextBlob
 
-from database.db_functions import insert_fact_mention
 
-file_name = "data/test.csv"
-
-def get_tweets():
+def get_tweets(file_name, delimiter):
     with open(file_name, 'r') as f:
-        data_list = list(csv.reader(f, delimiter=","))
+        data_list = list(csv.reader(f, delimiter=delimiter))
     df = np.array(data_list[1:])
     n = len(df) - 1
     return df.T[1][:n]
@@ -27,7 +23,7 @@ def get_stop_words():
 
 # word : [number, negative, neutral, positive]
 # negative = 0, neutral = 1, positive = 2
-def increment_frequency(word, sentiment):
+def increment_frequency(frequency, word, sentiment):
     if word in frequency:
         frequency[word][0] = frequency[word][0] + 1
     else:
@@ -55,88 +51,97 @@ def sentiment_analysis(text):
     return score
 
 
-def frequency_analysis(text, sentiment_polarity):
+def frequency_analysis(frequency, tokenizer, stop_words, text, sentiment_polarity):
     word_tokens = tokenizer.tokenize(text)
     filtered_sentence = [w for w in word_tokens if not w.lower() in stop_words]
     for word in filtered_sentence:
-        increment_frequency(word, sentiment_polarity)
+        increment_frequency(frequency, word, sentiment_polarity)
 
 
-tweets = get_tweets()
-sentiments = []
-polarities = []  # to compare efficiency
+def analysis(file_name, delimiter, result_verification):
+    tweets = get_tweets(file_name, delimiter)
+    sentiments = []
+    polarities = []  # to compare efficiency
 
-n_positive = 0
-n_negative = 0
-n_neutral = 0
+    n_positive = 0
+    n_negative = 0
+    n_neutral = 0
 
-threshold_negative = -0.1
-threshold_positive = 0.1
+    threshold_negative = -0.25
+    threshold_positive = 0.25
 
-stop_words = get_stop_words()
-tokenizer = RegexpTokenizer(r'\w+')
-frequency = {}
+    stop_words = get_stop_words()
+    tokenizer = RegexpTokenizer(r'\w+')
+    frequency = {}
 
-start = time.time()
-for tweet in tweets:
-    sentiment_score = sentiment_analysis(tweet)
-    sentiments.append(sentiment_score)
-    if sentiment_score < threshold_negative:
-        polarity = 0
-        n_negative += 1
-    elif sentiment_score > threshold_positive:
-        polarity = 2
-        n_positive += 1
-    else:
-        polarity = 1
-        n_neutral += 1
-
-    polarities.append(polarity)
-    frequency_analysis(tweet, polarity)
-end = time.time()
-
-print()
-print("---------- Sentiment Analysis (", end - start, "seconds) ----------")
-print("Number of tweets analyzed : ", len(sentiments))
-print("Number of words on frequency analysis: ", len(frequency))
-print("Positive Tweets :", n_positive, "Negative Tweets :", n_negative, "Neutral Tweets :", n_neutral)
-print()
-
-# ---------------------------------------- RESULT VERIFICATION -----------------------------------------
-result_verification = True
-if result_verification:
-    with open(file_name, 'r') as f:
-        data_list = list(csv.reader(f, delimiter=","))
-    df = np.array(data_list[1:])
-    n = len(df) - 1
-    result = []
-    neg = 0
-    pos = 0
-    neu = 0
-
-    for r in df.T[2][:n]:
-        if r == "neutral":
-            result.append(1)
-            neu += 1
-        elif r == "negative":
-            result.append(0)
-            neg += 1
+    start = time.time()
+    for tweet in tweets:
+        sentiment_score = sentiment_analysis(tweet)
+        sentiments.append(sentiment_score)
+        if sentiment_score < threshold_negative:
+            polarity = 0
+            n_negative += 1
+        elif sentiment_score > threshold_positive:
+            polarity = 2
+            n_positive += 1
         else:
-            result.append(2)
-            pos += 1
+            polarity = 1
+            n_neutral += 1
 
-    right = 0
-    for i in range(n):
-        if result[i] == polarities[i]:
-            right = right + 1
-    percent = right * 100 / n
+        polarities.append(polarity)
+        frequency_analysis(frequency, tokenizer, stop_words, tweet, polarity)
+    end = time.time()
 
     print()
-    print("---------- Expected Results : ----------")
-    print("Positive Tweets :", pos, "Negative Tweets :", neg, "Neutral Tweets :", neu)
     print()
-    print("---------- Relative Results (results - expected results) : ---------- ")
-    print("Positive Tweets :", n_positive - pos, "Negative Tweets :", n_negative - neg, "Neutral Tweets :",
-          n_neutral - neu)
+    print("Sentiment Analysis :", file_name)
+    print("Analysis Execution Time : ", end - start, "second(s)")
+    print("Number of tweets analyzed : ", len(sentiments))
+    print("Number of words on frequency analysis: ", len(frequency))
     print()
-    print("Accuracy : " + str(percent) + " %")
+    print("Results :")
+    print("Positive :", n_positive, "Negative :", n_negative, "Neutral :", n_neutral)
+
+    # ---------------------------------------- RESULT VERIFICATION -----------------------------------------
+    if result_verification:
+        with open(file_name, 'r') as f:
+            data_list = list(csv.reader(f, delimiter=delimiter))
+        df = np.array(data_list[1:])
+        n = len(df) - 1
+        result = []
+        neg = 0
+        pos = 0
+        neu = 0
+
+        for r in df.T[2][:n]:
+            if r == "neutral":
+                result.append(1)
+                neu += 1
+            elif r == "negative":
+                result.append(0)
+                neg += 1
+            else:
+                result.append(2)
+                pos += 1
+
+        right = 0
+        for i in range(n):
+            if result[i] == polarities[i]:
+                right = right + 1
+        percent = right * 100 / n
+
+        print("Accuracy : " + str(percent) + " %")
+
+        details = False
+        if details:
+            print()
+            print("Expected Results :")
+            print("Positive Tweets :", pos, "Negative Tweets :", neg, "Neutral Tweets :", neu)
+            print()
+            print("Relative Results (results - expected results) :")
+            print("Positive Tweets :", n_positive - pos, "Negative Tweets :", n_negative - neg, "Neutral Tweets :",
+                  n_neutral - neu)
+            print()
+
+
+#analysis("data/test.csv", ";", True)
