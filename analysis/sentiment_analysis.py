@@ -7,15 +7,44 @@ from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
 from textblob import TextBlob
 
+from database.database_helper import DatabaseHelper
 
-def get_tweets(file_name, delimiter):
-    with open(file_name, 'r') as f:
+# ------------------------------- READING THE CSV FILE -------------------------------------------------
+
+
+tweets = []
+source = ""
+client = ""
+date = ""
+country = ""
+language = ""
+
+
+def reading_csv_file(filename, delimiter):
+    global tweets
+    global source
+    global client
+    global date
+    global country
+    global language
+
+    with open(filename, 'r') as f:
         data_list = list(csv.reader(f, delimiter=delimiter))
     df = np.array(data_list[1:])
-    n = len(df) - 1
-    return df.T[1][:n]
+    n = len(df)
+    tweets = df[:, :2]
+    # tweets = df.T[1][:n]
+
+    chunks_properties = re.split("_", filename)
+    chunks_path = re.split("/", chunks_properties[0])
+    source = chunks_path[-1]
+    client = chunks_properties[1]
+    date = chunks_properties[2]
+    country = chunks_properties[3]
+    language = re.sub(".csv", "", chunks_properties[-1])
 
 
+# ---------------------------------- ANALYSIS FUNCTIONS -------------------------------------------------------
 def get_stop_words():
     words = set(stopwords.words('english'))
     return words
@@ -58,9 +87,12 @@ def frequency_analysis(frequency, tokenizer, stop_words, text, sentiment_polarit
         increment_frequency(frequency, word, sentiment_polarity)
 
 
-def analysis(file_name, delimiter, result_verification):
-    tweets = get_tweets(file_name, delimiter)
-    sentiments = []
+# ------------------------------------ ANALYSIS ----------------------------------------------------------
+
+def analysis(filename, delimiter, result_verification):
+    # ------------------------  INITIALIZATION ----------------------------------------------
+
+    reading_csv_file(filename, delimiter)
     polarities = []  # to compare efficiency
 
     n_positive = 0
@@ -73,11 +105,18 @@ def analysis(file_name, delimiter, result_verification):
     stop_words = get_stop_words()
     tokenizer = RegexpTokenizer(r'\w+')
     frequency = {}
+    sentiments = {}
+
+    # -----------------------  ANALYSIS ----------------------------------------
 
     start = time.time()
-    for tweet in tweets:
-        sentiment_score = sentiment_analysis(tweet)
-        sentiments.append(sentiment_score)
+    for t_tweet in tweets:
+        tweet_id = t_tweet[0]
+        tweet_content = t_tweet[1]
+        sentiment_score = sentiment_analysis(tweet_content)
+        like_number = 0
+        sentiments[tweet_id] = [sentiment_score, like_number]
+
         if sentiment_score < threshold_negative:
             polarity = 0
             n_negative += 1
@@ -89,12 +128,14 @@ def analysis(file_name, delimiter, result_verification):
             n_neutral += 1
 
         polarities.append(polarity)
-        frequency_analysis(frequency, tokenizer, stop_words, tweet, polarity)
-    end = time.time()
+        frequency_analysis(frequency, tokenizer, stop_words, tweet_content, polarity)
+        end = time.time()
+
+        # -----------------------  PRINTING ----------------------------------------
 
     print()
     print()
-    print("Sentiment Analysis :", file_name)
+    print("Sentiment Analysis :", filename)
     print("Analysis Execution Time : ", end - start, "second(s)")
     print("Number of tweets analyzed : ", len(sentiments))
     print("Number of words on frequency analysis: ", len(frequency))
@@ -102,9 +143,30 @@ def analysis(file_name, delimiter, result_verification):
     print("Results :")
     print("Positive :", n_positive, "Negative :", n_negative, "Neutral :", n_neutral)
 
+    # ------------------------------- STORAGE ON DWH -----------------------------------------
+
+    database_helper = DatabaseHelper()
+    id_source = database_helper.get_id_source(source)
+    id_client = database_helper.get_id_client(client)
+    id_date = database_helper.get_id_date(date)
+    id_country = database_helper.get_id_country(country)
+    id_language = database_helper.get_id_language(language)
+
+    for t in sentiments.items():
+        database_helper.insert_fact_record_twitter(id_client, id_date, id_country, id_language, t[1][0], t[1][1])
+
+    for word in frequency.items():
+        total = word[1][0]
+        positive = word[1][3]
+        neutral = word[1][2]
+        negative = word[1][1]
+        database_helper.insert_fact_frequency(id_source, id_client, id_date, id_country, id_language, word[0],
+                                              positive,
+                                              negative, neutral, total)
+
     # ---------------------------------------- RESULT VERIFICATION -----------------------------------------
     if result_verification:
-        with open(file_name, 'r') as f:
+        with open(filename, 'r') as f:
             data_list = list(csv.reader(f, delimiter=delimiter))
         df = np.array(data_list[1:])
         n = len(df) - 1
@@ -128,20 +190,15 @@ def analysis(file_name, delimiter, result_verification):
         for i in range(n):
             if result[i] == polarities[i]:
                 right = right + 1
-        percent = right * 100 / n
 
+        percent = right * 100 / n
         print("Accuracy : " + str(percent) + " %")
 
-        details = False
-        if details:
-            print()
-            print("Expected Results :")
-            print("Positive Tweets :", pos, "Negative Tweets :", neg, "Neutral Tweets :", neu)
-            print()
-            print("Relative Results (results - expected results) :")
-            print("Positive Tweets :", n_positive - pos, "Negative Tweets :", n_negative - neg, "Neutral Tweets :",
-                  n_neutral - neu)
-            print()
-
-
-#analysis("data/test.csv", ";", True)
+        # print()
+        # print("Expected Results :")
+        # print("Positive Tweets :", pos, "Negative Tweets :", neg, "Neutral Tweets :", neu)
+        # print()
+        # print("Relative Results (results - expected results) :")
+        # print("Positive Tweets :", n_positive - pos, "Negative Tweets :", n_negative - neg, "Neutral Tweets :",
+        #       n_neutral - neu)
+        # print()

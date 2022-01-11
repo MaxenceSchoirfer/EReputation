@@ -5,32 +5,35 @@ from jproperties import Properties
 class DatabaseHelper:
 
     def __init__(self):
-        properties = Properties()
-        with open('app-config.properties', 'rb') as config_file:
-            properties.load(config_file)
-        self.id_twitter = properties.get("id_source_twitter")[0]
+        # properties = Properties()
+        # with open('app-config.properties', 'rb') as config_file:
+        #     properties.load(config_file)
+        # self.id_twitter = properties.get("id_source_twitter")[0]
+        self.id_twitter = 1
         self.mydb = mysql.connector.connect(
-            host=properties.get("host")[0],
-            user=properties.get("user")[0],
-            password=properties.get("password")[0],
-            database=properties.get("database")[0]
-            # host="localhost",
-            # user="root",
-            # password="",
-            # database="db_ereputation"
+            # host=properties.get("host")[0],
+            # user=properties.get("user")[0],
+            # password=properties.get("password")[0],
+            # database=properties.get("database")[0]
+            host="localhost",
+            user="root",
+            password="",
+            database="db_ereputation"
         )
         self.cursor = self.mydb.cursor()
 
-    def insert_fact_record_twitter(self, client, date, country, sentiment_score, number_like):
-        sql = "INSERT INTO fact_record_twitter (id_source, id_client, id_date, id_country, sentiment_score, number_like) VALUES (%s, %s,%s, %s,%s, %s)"
-        values = (self.id_twitter, client, date, country, sentiment_score, number_like)
+    def insert_fact_record_twitter(self, client, date, country, language, sentiment_score, number_like):
+        sql = "INSERT INTO fact_record_twitter (id_source, id_client, id_date, id_country, id_language, sentiment_score, number_like) VALUES (%s, %s,%s,%s, %s,%s, %s)"
+        values = (self.id_twitter, client, date, country, language, sentiment_score, number_like)
         self.cursor.execute(sql, values)
         self.mydb.commit()
 
-    def insert_fact_frequency(self, source, client, date, country, word, number_positive, number_negative, number_neutral,
+    def insert_fact_frequency(self, source, client, date, country, language, word, number_positive, number_negative,
+                              number_neutral,
                               number_total):
-        sql = "INSERT INTO fact_frequency (id_source, id_client, id_date, id_country,  word, number_positive, number_negative,number_neutral, number_total) VALUES (%s, %s,%s, %s,%s, %s,%s, %s, %s)"
-        values = (source, client, date, country, word, number_positive, number_negative, number_neutral, number_total)
+        sql = "INSERT INTO fact_frequency (id_source, id_client, id_date, id_country, id_language,  word, number_positive, number_negative,number_neutral, number_total) VALUES (%s, %s,%s,%s, %s,%s, %s,%s, %s, %s)"
+        values = (
+        source, client, date, country, language, word, number_positive, number_negative, number_neutral, number_total)
         self.cursor.execute(sql, values)
         self.mydb.commit()
 
@@ -54,6 +57,12 @@ class DatabaseHelper:
 
     def get_id_country(self, alias):
         sql = "SELECT id_country FROM dim_country WHERE alias = %s"
+        self.cursor.execute(sql, (alias,))
+        result = self.cursor.fetchone()[0]
+        return result
+
+    def get_id_language(self, alias):
+        sql = "SELECT id_language FROM dim_language WHERE alias = %s"
         self.cursor.execute(sql, (alias,))
         result = self.cursor.fetchone()[0]
         return result
