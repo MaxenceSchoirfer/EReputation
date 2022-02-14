@@ -7,7 +7,7 @@ from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
 from textblob import TextBlob
 
-from database.database_helper import DatabaseHelper
+from database.data_warehouse_helper import DataWarehouseHelper
 
 # ------------------------------- READING THE CSV FILE -------------------------------------------------
 from dataset import Dataset
@@ -125,7 +125,7 @@ def analysis(filename):
 
     # ------------------------------- STORAGE ON DWH -----------------------------------------
 
-    database_helper = DatabaseHelper()
+    database_helper = DataWarehouseHelper()
     id_source = database_helper.get_id_source(dataset.source)
     id_client = database_helper.get_id_client(dataset.client)
     id_date = database_helper.get_id_date(dataset.date)

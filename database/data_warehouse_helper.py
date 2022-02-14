@@ -2,7 +2,7 @@ import mysql.connector
 from jproperties import Properties
 
 
-class DatabaseHelper:
+class DataWarehouseHelper:
 
     def __init__(self):
         properties = Properties()

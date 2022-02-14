@@ -1,5 +1,5 @@
 import sentiment_analysis
-from database.database_helper import DatabaseHelper
+from database.data_warehouse_helper import DataWarehouseHelper
 
-db = DatabaseHelper()
+db = DataWarehouseHelper()
 sentiment_analysis.analysis("../data/twitter/TWITTER_COCA_18-01-2022_UNK_EN.csv")
