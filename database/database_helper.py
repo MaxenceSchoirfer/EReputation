@@ -5,20 +5,16 @@ from jproperties import Properties
 class DatabaseHelper:
 
     def __init__(self):
-        # properties = Properties()
-        # with open('app-config.properties', 'rb') as config_file:
-        #     properties.load(config_file)
-        # self.id_twitter = properties.get("id_source_twitter")[0]
-        self.id_twitter = 1
+        properties = Properties()
+        with open('../app-config.properties', 'rb') as config_file:
+            properties.load(config_file)
+        self.id_twitter = properties.get("DWH_TWITTER_ID")[0]
         self.mydb = mysql.connector.connect(
-            # host=properties.get("host")[0],
-            # user=properties.get("user")[0],
-            # password=properties.get("password")[0],
-            # database=properties.get("database")[0]
-            host="localhost",
-            user="root",
-            password="",
-            database="db_ereputation"
+            host=properties.get("DWH_HOST")[0],
+            user=properties.get("DWH_USER")[0],
+            port=properties.get("DWH_PORT")[0],
+            password=properties.get("DWH_PASSWORD")[0],
+            database=properties.get("DWH_DATABASE_NAME")[0]
         )
         self.cursor = self.mydb.cursor()
 

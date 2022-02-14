@@ -1,6 +1,5 @@
 import sentiment_analysis
+from database.database_helper import DatabaseHelper
 
-sentiment_analysis.analysis("../data/sample/TWITTER_COCA_2022-01-10_ENG_EN.csv", ";", False)
-sentiment_analysis.analysis("../data/sample/TWITTER_COCA_2022-01-11_ENG_EN.csv", ";", False)
-sentiment_analysis.analysis("../data/sample/TWITTER_COCA_2022-01-10_USA_EN.csv", ";", False)
-sentiment_analysis.analysis("../data/sample/TWITTER_COCA_2022-01-11_USA_EN.csv", ";", False)
+db = DatabaseHelper()
+sentiment_analysis.analysis("../data/twitter/TWITTER_COCA_18-01-2022_UNK_EN.csv")
