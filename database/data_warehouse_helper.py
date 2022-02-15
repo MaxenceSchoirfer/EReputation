@@ -50,8 +50,10 @@ class DataWarehouseHelper:
     def get_id_date(self, date):
         sql = "SELECT id_date FROM date WHERE dated = %s"
         self.cursor.execute(sql, (date,))
-        result = self.cursor.fetchone()[0]
-        return result
+        result = self.cursor.fetchone()
+        if result is None :
+            return result
+        return result[0]
 
     def get_id_country(self, alias):
         sql = "SELECT id_country FROM dim_country WHERE alias = %s"
@@ -68,7 +70,8 @@ class DataWarehouseHelper:
     def create_date_for_year(self, year):
         date = datetime.date(year, 1, 1)
         while date.year == year:
-            self.insert_date(str(date))
+            if self.get_id_date(str(date)) is None :
+                self.insert_date(str(date))
             date += datetime.timedelta(days=1)
 
     def insert_date(self,string):
