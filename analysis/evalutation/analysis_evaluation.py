@@ -1,10 +1,13 @@
+import collections
 import csv
 import re
 import time
 
+import enchant
 import numpy as np
 from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
+from nltk.corpus import words
 from textblob import TextBlob
 from pattern.text.en import singularize
 
@@ -14,6 +17,7 @@ import seaborn as sns
 # ------------------------------- READING THE CSV FILE -------------------------------------------------
 tweets = []
 
+d = enchant.Dict("en_US")
 
 def reading_csv_file(filename, delimiter):
     global tweets
@@ -28,11 +32,13 @@ def reading_csv_file(filename, delimiter):
 # ---------------------------------- ANALYSIS FUNCTIONS -------------------------------------------------------
 def get_stop_words():
     words = set(stopwords.words('english'))
-    personal_stop_word = {"u", "us", "urs","ur", "cant", "thus", "hes", "shes", "its", "im", "ah", "youve", "yous", "ins",
-                          "youll", "dont","yes","ya","ill","cuz","btw","til","yea","yeah","ive","www","com","http","https","idk","yr","yo","coz","bc"
-                          ,"atm","hadnt", "havent", "didnt", "wouldnt", "arent", "youd", "doesnt", "youre",
+    personal_stop_word = {"u", "us", "urs", "ur", "cant", "thus", "hes", "shes", "its", "im", "ah", "youve", "yous",
+                          "ins",
+                          "youll", "dont", "yes", "ya", "ill", "cuz", "btw", "til", "yea", "yeah", "ive", "www", "com",
+                          "http", "https", "idk", "yr", "yo", "coz", "bc"
+        , "atm", "hadnt", "havent", "didnt", "wouldnt", "arent", "youd", "doesnt", "youre",
                           "hasnt", "wont", "isnt", "com", "eg", "etc", "ex", "hi", "ie", "mr", "mrs", "onto", "one",
-                          "two", "three", "four", "five", "six", "seven", "eight", "nine",
+                          "two", "three", "four", "five", "six", "seven", "eight", "nine", "cauz",
                           "ten", "eleven", "twelve", "whence", "whereas"}
     for w in personal_stop_word:
         words.add(w)
@@ -44,13 +50,26 @@ def get_stop_words():
 def increment_frequency(frequency, word, sentiment):
     if len(word) < 2:
         return
-    if not word.endswith("ss"):
-        if not word.endswith("ll"):
-            while word[-1] == word[-2]:
+
+    if word[-1] == word[-2]:
+        while (len(word) > 2) & (word[-1] == word[-2]):
+
+            if not d.check(word):
                 word = word[:-1]
-                if len(word) < 2 :
-                    return
+            else:
+                break
+    if not word.endswith("ss"):
         word = singularize(word)
+
+
+    # # check if not on dict
+    # if not word.endswith("ss"):
+    #     if not word.endswith("ll"):
+    #         while word[-1] == word[-2]:
+    #             word = word[:-1]
+    #             if len(word) < 2:
+    #                 return
+    #     word = singularize(word)
     if word in frequency:
         frequency[word][0] = frequency[word][0] + 1
     else:
@@ -70,6 +89,7 @@ def cleanse_tweet(text):
 
 
 def sentiment_analysis(text):
+    text = cleanse_tweet(text)
     blob = TextBlob(text)
     score = 0  # Polarity of single individual tweet
     for sentence in blob.sentences:
@@ -82,7 +102,7 @@ def frequency_analysis(frequency, tokenizer, stop_words, text, sentiment_polarit
     filtered_sentence = [w for w in word_tokens if not w.lower() in stop_words]
     for word in filtered_sentence:
         if (not re.search('\W', word)) & (not re.search('[0-9]+', word)):
-            increment_frequency(frequency, word, sentiment_polarity)
+            increment_frequency(frequency, word.lower(), sentiment_polarity)
 
 
 # ------------------------------------ ANALYSIS ----------------------------------------------------------
@@ -122,7 +142,7 @@ def analysis(filename, delimiter, result_verification):
         else:
             tweet_sentiment = 2
 
-        tweet_content = cleanse_tweet(tweet_content)
+
         sentiment_score = sentiment_analysis(tweet_content)
         sentiments[tweet_id] = [sentiment_score, 0]
 
@@ -196,41 +216,61 @@ def analysis(filename, delimiter, result_verification):
         print(key + " : " + str(values[0]))
     print(len(frequency))
 
-    # ---------------------------------------- RESULT VERIFICATION -----------------------------------------
-    # if result_verification:
-    #     with open(filename, 'r') as f:
-    #         data_list = list(csv.reader(f, delimiter=delimiter))
-    #     df = np.array(data_list[1:])
-    #     n = len(df) - 1
-    #     result = []
-    #     neg = 0
-    #     pos = 0
-    #     neu = 0
-    #
-    #     for r in df.T[2][:n]:
-    #         if r == "neutral":
-    #             result.append(1)
-    #             neu += 1
-    #         elif r == "negative":
-    #             result.append(0)
-    #             neg += 1
-    #         else:
-    #             result.append(2)
-    #             pos += 1
-    #
-    #     right = 0
-    #     for i in range(n):
-    #         if result[i] == polarities[i]:
-    #             right = right + 1
-    #
-    #     percent = right * 100 / n
-    #     print("Accuracy : " + str(percent) + " %")
-    #
-    #     print()
-    #     print("Expected Results :")
-    #     print("Negative Tweets :", neg, "Neutral Tweets :", neu, "Positive Tweets :", pos)
-    #     print()
-    #     print("Relative Results (results - expected results) :")
-    #     print("Negative Tweets :", n_negative - neg, "Neutral Tweets :",
-    #           n_neutral - neu, "Positive Tweets :", n_positive - pos)
-    #     print()
+    freq = {}
+    for key, values in frequency.items():
+        if values[0] not in freq:
+            freq[values[0]] = 1
+        else:
+            freq[values[0]] += 1
+
+    plt.figure(figsize=(10, 5))
+    # plt.xlim(0, 20)
+    plt.xlabel('Number of occurrence')
+    #  plt.ylim(0, 1)
+    plt.ylabel('Density')
+    # sns.kdeplot(np.array(list(sentiments.values()))[:, 0], shade=True)
+    # sns.distplot(np.array(list(sentiments.values()))[:, 0], bins=100, kde=False)
+    plt.bar(np.array(list(freq.values())), np.array(list(freq.keys())))
+    #  sns.boxplot(np.array(list(freq.keys())))
+    plt.show()
+    od = collections.OrderedDict(sorted(freq.items()))
+    print(od)
+
+# ---------------------------------------- RESULT VERIFICATION -----------------------------------------
+# if result_verification:
+#     with open(filename, 'r') as f:
+#         data_list = list(csv.reader(f, delimiter=delimiter))
+#     df = np.array(data_list[1:])
+#     n = len(df) - 1
+#     result = []
+#     neg = 0
+#     pos = 0
+#     neu = 0
+#
+#     for r in df.T[2][:n]:
+#         if r == "neutral":
+#             result.append(1)
+#             neu += 1
+#         elif r == "negative":
+#             result.append(0)
+#             neg += 1
+#         else:
+#             result.append(2)
+#             pos += 1
+#
+#     right = 0
+#     for i in range(n):
+#         if result[i] == polarities[i]:
+#             right = right + 1
+#
+#     percent = right * 100 / n
+#     print("Accuracy : " + str(percent) + " %")
+#
+#     print()
+#     print("Expected Results :")
+#     print("Negative Tweets :", neg, "Neutral Tweets :", neu, "Positive Tweets :", pos)
+#     print()
+#     print("Relative Results (results - expected results) :")
+#     print("Negative Tweets :", n_negative - neg, "Neutral Tweets :",
+#           n_neutral - neu, "Positive Tweets :", n_positive - pos)
+#     print()
