@@ -1,4 +1,4 @@
-from database.data_warehouse_helper import DataWarehouseHelper
+from helpers.datawarehouse_helper import DataWarehouseHelper
 
 
 class DataMartHelper:
