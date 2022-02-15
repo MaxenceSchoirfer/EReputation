@@ -1,3 +1,5 @@
+import datetime
+
 import mysql.connector
 from jproperties import Properties
 
@@ -62,3 +64,14 @@ class DataWarehouseHelper:
         self.cursor.execute(sql, (alias,))
         result = self.cursor.fetchone()[0]
         return result
+
+    def create_date_for_year(self, year):
+        date = datetime.date(year, 1, 1)
+        while date.year == year:
+            self.insert_date(str(date))
+            date += datetime.timedelta(days=1)
+
+    def insert_date(self,string):
+        sql = "INSERT INTO `db_ereputation`.`date` (`dated`) VALUES (%s);"
+        self.cursor.execute(sql, (string,))
+
