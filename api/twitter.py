@@ -74,7 +74,6 @@ def call_hashtag():
             row = {'User': tweet.user.screen_name, 'Text': tweet.text.replace('\n', ' '), 'Time': tweet.created_at,
                    'Language': tweet.lang, 'Coordonnées': tweet.geo, 'Place': tweet.place}
 
-
 def call_page():
     replies_page, page_tweet_count = page_scoped(name)
     with open(

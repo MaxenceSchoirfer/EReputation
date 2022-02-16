@@ -20,9 +20,9 @@ class DataWarehouseHelper:
         )
         self.cursor = self.mydb.cursor()
 
-    def insert_fact_record_twitter(self, client, date, country, language, sentiment_score, number_like):
-        sql = "INSERT INTO fact_record_twitter (id_source, id_client, id_date, id_country, id_language, sentiment_score, number_like) VALUES (%s, %s,%s,%s, %s,%s, %s)"
-        values = (self.id_twitter, client, date, country, language, sentiment_score, number_like)
+    def insert_fact_record_twitter(self, client, date, country, language, sentiment_score):
+        sql = "INSERT INTO fact_record_twitter (id_source, id_client, id_date, id_country, id_language, sentiment_score) VALUES (%s, %s,%s,%s, %s,%s)"
+        values = (self.id_twitter, client, date, country, language, sentiment_score)
         self.cursor.execute(sql, values)
         self.mydb.commit()
 

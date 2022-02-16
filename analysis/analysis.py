@@ -2,7 +2,7 @@ import time
 
 from analysis.frequency_helper import FrequencyHelper
 from analysis.sentiment_helper import SentimentHelper
-from database.data_warehouse_helper import DataWarehouseHelper
+from helpers.datawarehouse_helper import DataWarehouseHelper
 from data.dataset import Dataset
 
 
@@ -15,7 +15,7 @@ def storage(dataset):
     id_language = database_helper.get_id_language(dataset.language)
 
     for tweet in dataset.sentiments:
-        database_helper.insert_fact_record_twitter(id_client, id_date, id_country, id_language, tweet, 0)
+        database_helper.insert_fact_record_twitter(id_client, id_date, id_country, id_language, tweet)
 
     for word_frequency in dataset.frequencies.items():
         total = word_frequency[1][0]
