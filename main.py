@@ -3,6 +3,7 @@ from helpers import datalake_helper
 from helpers.datalake_helper import DatalakeHelper
 from analysis import analysis
 
+#probably have to use thread
 # foreach active users
 # call twitter API
 # download csv files

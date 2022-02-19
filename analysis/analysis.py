@@ -1,7 +1,8 @@
+import re
 import time
 
-from analysis.frequency_helper import FrequencyHelper
-from analysis.sentiment_helper import SentimentHelper
+from frequency_helper import FrequencyHelper
+from sentiment_helper import SentimentHelper
 from helpers.datawarehouse_helper import DataWarehouseHelper
 from data.dataset import Dataset
 
@@ -38,6 +39,13 @@ def analysis(filename, header, column, is_test):
         sentiment_score = sentiment_helper.analysis(content)
         dataset.sentiments.append(sentiment_score)
         frequency_helper.analysis(dataset.frequencies, content, sentiment_helper.get_polarity(sentiment_score))
+    frequency_helper.remove_low_frequencies(dataset.frequencies, 1)
+#    dataset.frequencies = frequency_helper.join_word(dataset.frequencies)
+
+    for key, values in reversed(sorted(dataset.frequencies.items(), key=lambda item: item[1])):
+        if True:
+            print(key + " : " + str(values[0]))
+    print(len(dataset.frequencies))
 
     # storage(dataset)
     end = time.time()
