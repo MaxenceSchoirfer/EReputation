@@ -1,12 +1,9 @@
 import re
 import enchant
-import nlp as nlp
 from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
-from pattern.text.en import singularize
 from nltk.stem import WordNetLemmatizer
-
-import spacy
+from pattern.text.en import singularize
 
 
 def get_stopwords():
@@ -59,12 +56,16 @@ class FrequencyHelper:
 
     def analysis(self, frequency, text, sentiment_polarity):
         text = text.lower()
+        text = re.sub(r"http\S+", "", text)  # remove link
+        text = text.encode('ascii', 'ignore').decode('ascii')  # remove non ascii character (emoji/hiding char)
         word_tokens = self.tokenizer.tokenize(text)
         filtered_sentence = [w for w in word_tokens if not w.lower() in self.stopwords]
+
         for word in filtered_sentence:
             word = self.check_frequency_validity(word)
             if word is not None:
                 word = self.lemmatizer.lemmatize(word, "v")
+                word = self.lemmatizer.lemmatize(word, "a")
                 increment_frequency(frequency, word, sentiment_polarity)
 
     @staticmethod
@@ -76,37 +77,3 @@ class FrequencyHelper:
 
         for key in delete:
             del frequency[key]
-
-    @staticmethod
-    def join_word(frequency):
-        nlp = spacy.load('en_core_web_sm')
-        new_frequency = {}
-        withdraw = []
-        for key1, value1 in frequency.items():
-            for key2, value2 in frequency.items():
-                if not withdraw.__contains__(key1) and not withdraw.__contains__(key2):
-                    if nlp(key1).similarity(nlp(key2)) > 0.85:
-                        print(key1, ",", key2)
-                        new_value = [value1[0] + value2[0], value1[1] + value2[1], value1[2] + value2[2],
-                                     value1[3] + value2[3]]
-                        if value1 > value2:
-                            withdraw.append(key2)
-                            if not new_frequency.__contains__(key1):
-                                new_frequency[key1] = new_value
-                            else:
-                                new_frequency[key1] = [new_frequency[key1][0] + value2[0],
-                                                       new_frequency[key1][1] + value2[1],
-                                                       new_frequency[key1][2] + value2[2],
-                                                       new_frequency[key1][3] + value2[3]]
-                        else:
-                            withdraw.append(key1)
-                            if not new_frequency.__contains__(key2):
-                                new_frequency[key2] = new_value
-                            else:
-                                new_frequency[key2] = [new_frequency[key2][0] + value1[0],
-                                                       new_frequency[key2][1] + value1[1],
-                                                       new_frequency[key2][2] + value1[2],
-                                                       new_frequency[key2][3] + value1[3]]
-            new_frequency[key1] = value1
-
-        return new_frequency

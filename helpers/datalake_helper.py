@@ -16,7 +16,7 @@ class DatalakeHelper:
     # todo get all files on the directory on the data lake
     def get_files(self):
         self.client.download_file('e-reputation', 'Twitter/Twitter_CocaCola_18-01-2022_UNK_EN.csv',
-                                  'twitter/TWITTER_COCA_2022-10-01_UNK_EN.csv')
+                                  'twitter/_TWITTER_COCA_2022-10-01_UNK_EN.csv')
 
     @staticmethod
     def get_filenames(path):

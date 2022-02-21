@@ -6,26 +6,25 @@ import re
 # format csv filename : SOURCE_CLIENT_mm-dd_yyyy_COUNTRY_LANGUAGE.csv
 class Dataset:
 
-    def __init__(self, filename, has_header, id_data_column, is_test_file):
+    def __init__(self, filename, is_test_file):
         if not is_test_file:
             # ------- RECOVER METADATA -------------------------
             while re.search(r"\A/", filename):
                 filename = re.sub(r"\A/", "", filename)
             chunks = re.split("_", filename)
-            self.source = re.split("/", chunks[0])[-1]
-            self.client = chunks[1]
-            self.date = chunks[2]
-            self.country = chunks[3]
-            self.language = re.split("\.", chunks[4])[0]
+            self.source = chunks[1]
+            self.client = chunks[2]
+            self.date = chunks[3]
+            self.country = chunks[4]
+            self.language = re.split("\.", chunks[5])[0]
 
         # ---------------- EXTRACT DAT --------------------------
-        with open(filename, 'r', encoding="utf-8") as f:
-            data_list = list(csv.reader(f, delimiter=";"))
-        if has_header:
-            data_list.pop(0)
-        for line in data_list:
-            if not line:
-                data_list.remove(line)
-        self.data = np.array(data_list)[:, id_data_column]
+        with open(filename, 'r') as f:
+            # data_list = list(csv.reader(f, delimiter=";"))
+            reader = csv.DictReader(f, delimiter=";")
+            data = []
+            for row in reader:
+                data.append(row["text"])
+        self.data = np.array(data)
         self.sentiments = []
         self.frequencies = {}
