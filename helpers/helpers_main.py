@@ -3,8 +3,8 @@ import datalake_helper as dl
 import datamart_helper as dm
 
 DWH = dwh.DataWarehouseHelper()
-DL = dl
-DM = dm.DataMartHelper()
+DL = dl.DatalakeHelper()
+DM = dm.DataMartHelper("COCA")
 
-filenames = DL.get_filenames("../data/test/")
-print()
+#DWH.create_date_for_year(2022)
+DM.insert_fact_record_twitter(2)

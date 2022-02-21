@@ -31,7 +31,8 @@ class DataWarehouseHelper:
                               number_total):
         sql = "INSERT INTO fact_frequency (id_source, id_client, id_date, id_country, id_language,  word, number_positive, number_negative,number_neutral, number_total) VALUES (%s, %s,%s,%s, %s,%s, %s,%s, %s, %s)"
         values = (
-        source, client, date, country, language, word, number_positive, number_negative, number_neutral, number_total)
+            source, client, date, country, language, word, number_positive, number_negative, number_neutral,
+            number_total)
         self.cursor.execute(sql, values)
         self.mydb.commit()
 
@@ -51,7 +52,7 @@ class DataWarehouseHelper:
         sql = "SELECT id_date FROM date WHERE dated = %s"
         self.cursor.execute(sql, (date,))
         result = self.cursor.fetchone()
-        if result is None :
+        if result is None:
             return result
         return result[0]
 
@@ -70,11 +71,38 @@ class DataWarehouseHelper:
     def create_date_for_year(self, year):
         date = datetime.date(year, 1, 1)
         while date.year == year:
-            if self.get_id_date(str(date)) is None :
+            if self.get_id_date(str(date)) is None:
                 self.insert_date(str(date))
             date += datetime.timedelta(days=1)
 
-    def insert_date(self,string):
-        sql = "INSERT INTO `db_ereputation`.`date` (`dated`) VALUES (%s);"
+    def insert_date(self, string):
+        sql = "INSERT INTO date (`dated`) VALUES (%s);"
         self.cursor.execute(sql, (string,))
 
+
+
+    def get_all_dates(self):
+        self.cursor.execute("SELECT * FROM date;")
+        return self.cursor.fetchall()
+
+    def get_all_countries(self):
+        self.cursor.execute("SELECT * FROM dim_country;")
+        return self.cursor.fetchall()
+
+    def get_all_languages(self):
+        self.cursor.execute("SELECT * FROM dim_language;")
+        return self.cursor.fetchall()
+
+    def get_all_sources(self):
+        self.cursor.execute("SELECT * FROM dim_source;")
+        return self.cursor.fetchall()
+
+    def get_fact_frequency(self, id_client, id_date):
+        sql = "SELECT * FROM fact_frequency WHERE id_client = %s AND id_date = %s;"
+        self.cursor.execute(sql, (id_client, id_date,))
+        return self.cursor.fetchall()
+
+    def get_fact_record_twitter(self, id_client, id_date):
+        sql = "SELECT * FROM fact_record_twitter WHERE id_client = %s AND id_date = %s;"
+        self.cursor.execute(sql, (id_client, id_date,))
+        return self.cursor.fetchall()
