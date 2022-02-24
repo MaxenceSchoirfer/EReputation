@@ -29,8 +29,8 @@ def storage(dataset):
                                               negative, neutral, total)
 
 
-def analysis(filename, is_test):
-    dataset = Dataset(filename, is_test)
+def analysis(dataset):
+    #dataset = Dataset(filename, is_test)
     sentiment_helper = SentimentHelper()
     frequency_helper = FrequencyHelper()
 

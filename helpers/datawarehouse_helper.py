@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import mysql.connector
 from jproperties import Properties
@@ -7,8 +8,10 @@ from jproperties import Properties
 class DataWarehouseHelper:
 
     def __init__(self):
+        simp_path = 'app-config.properties'
+        abs_path = os.path.abspath(simp_path)
         properties = Properties()
-        with open('../app-config.properties', 'rb') as config_file:
+        with open(abs_path, 'rb') as config_file:
             properties.load(config_file)
         self.id_twitter = properties.get("DWH_TWITTER_ID")[0]
         self.mydb = mysql.connector.connect(
@@ -19,6 +22,26 @@ class DataWarehouseHelper:
             database=properties.get("DWH_DATABASE_NAME")[0]
         )
         self.cursor = self.mydb.cursor()
+
+    def save_dataset_analysis(self, dataset):
+        id_source = self.get_id_source(dataset.source)
+        id_client = self.get_id_client(dataset.client)
+        id_date = self.get_id_date(dataset.date)
+        id_country = self.get_id_country(dataset.country)
+        id_language = self.get_id_language(dataset.language)
+
+        for tweet in dataset.sentiments:
+            self.insert_fact_record_twitter(id_client, id_date, id_country, id_language, tweet)
+
+        for word_frequency in dataset.frequencies.items():
+            total = word_frequency[1][0]
+            positive = word_frequency[1][3]
+            neutral = word_frequency[1][2]
+            negative = word_frequency[1][1]
+            self.insert_fact_frequency(id_source, id_client, id_date, id_country, id_language,
+                                       word_frequency[0],
+                                       positive,
+                                       negative, neutral, total)
 
     def insert_fact_record_twitter(self, client, date, country, language, sentiment_score):
         sql = "INSERT INTO fact_record_twitter (id_source, id_client, id_date, id_country, id_language, sentiment_score) VALUES (%s, %s,%s,%s, %s,%s)"
@@ -35,6 +58,19 @@ class DataWarehouseHelper:
             number_total)
         self.cursor.execute(sql, values)
         self.mydb.commit()
+
+    def create_dates_for_year(self, year):
+        date = datetime.date(year, 1, 1)
+        while date.year == year:
+            if self.get_id_date(str(date)) is None:
+                self.insert_date(str(date))
+            date += datetime.timedelta(days=1)
+
+    def insert_date(self, string):
+        sql = "INSERT INTO date (`dated`) VALUES (%s);"
+        self.cursor.execute(sql, (string,))
+
+    # ----------------------------- GETTERS --------------------------------------------------------
 
     def get_id_source(self, alias):
         sql = "SELECT id_source FROM dim_source WHERE alias = %s"
@@ -67,19 +103,6 @@ class DataWarehouseHelper:
         self.cursor.execute(sql, (alias,))
         result = self.cursor.fetchone()[0]
         return result
-
-    def create_date_for_year(self, year):
-        date = datetime.date(year, 1, 1)
-        while date.year == year:
-            if self.get_id_date(str(date)) is None:
-                self.insert_date(str(date))
-            date += datetime.timedelta(days=1)
-
-    def insert_date(self, string):
-        sql = "INSERT INTO date (`dated`) VALUES (%s);"
-        self.cursor.execute(sql, (string,))
-
-
 
     def get_all_dates(self):
         self.cursor.execute("SELECT * FROM date;")

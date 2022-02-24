@@ -36,16 +36,15 @@ class TwitterHelper:
     def generate_csv(self, client):
         name = 'CocaCola'  # todo get this name from db (not dwh)
         alias = client
-        user = self.api.get_user(screen_name=name)  # useful ?
-        follower_count = user.followers_count  # useful ?
         date = datetime.today().strftime('%Y-%m-%d')
 
         replies_general = self.get_general_tweets(['Cocacola'], 'en')
 
-        path = 'C:/Dev/ERep/data/twitter/_TWITTER' + '_' + alias + '_' + date + '_UNK' + '_EN' + '.csv'
-
+        direct = 'C:/Dev/ERep/data/twitter/'
+        name = '_TWITTER' + '_' + alias + '_' + date + '_UNK' + '_EN' + '.csv'
+        path = direct + name
         with open(path, 'w', newline='', encoding="utf-8") as f:
-            csv_writer = csv.DictWriter(f, fieldnames=('Text'))
+            csv_writer = csv.DictWriter(f, fieldnames='Text')
             csv_writer.writeheader()
             for tweet in replies_general:
                 row = {'Text': tweet.text.replace('\n', ' ')}
