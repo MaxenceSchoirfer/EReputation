@@ -6,6 +6,7 @@ from analysis import global_helper
 from api.twitter_helper import TwitterHelper
 from data.dataset import Dataset
 from helpers.datalake_helper import DatalakeHelper
+from helpers.datamart_helper import DataMartHelper
 from helpers.datawarehouse_helper import DataWarehouseHelper
 from datetime import date
 
@@ -23,7 +24,7 @@ def log(message, level):
         print(message)
 
 
-def processing(client, alias):
+def processing(client, alias, id_date):
     # --------------------------- API CALL ------------------------------------------------------
     try:
         message = "Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]"
@@ -74,13 +75,25 @@ def processing(client, alias):
             log(message, "ERROR")
             return
 
+    # -------------------------------------- FEED DATA MART ----------------------------------------------------------
+
+    try:
+        message = "Start data transfer from DWH to DM [source : TWITTER, client : " + alias + ", date : " + date + "]"
+        log(message, "INFO")
+
+        datamart_helper = DataMartHelper(alias)
+        datamart_helper.insert_fact_record_twitter(id_date)
+        datamart_helper.insert_fact_frequency(id_date)
+    except Exception as e:
+        message = "Error occurred while transferring data from DWH to DM [source : TWITTER, client : " + alias + ", date : " + date + "]" + str(
+            e)
+        log(message, "ERROR")
+        return
+
 
 logfile = "log/log_" + str(date.today()) + ".log"
 logging.basicConfig(filename=logfile, level=logging.INFO,
                     format='%(asctime)s (%(name)s) ->  %(levelname)s :: %(message)s')
-
-# clients = ["COCA"]  # get active users -> from ??? DWH bad practice
-date = "2022-21-02"
 
 try:
     local_db_helper = LocalDBHelper()
@@ -91,14 +104,16 @@ except Exception as e:
     logging.error("Error occurred during Fetching Helpers initialization : " + str(e))
     sys.exit(-1)
 
+date = "2022-21-02"
 clients = {}
 for client in local_db_helper.get_active_clients():
     clients[client[1]] = client[2]
 print(clients)
 
+id_date = dwh_helper.get_id_date(date)
 threads = []
 for alias, client in clients.items():
-    threads.append(threading.Thread(target=processing, args=(client, alias,)))
+    threads.append(threading.Thread(target=processing, args=(client, alias, id_date,)))
 
 for t in threads:
     t.start()
