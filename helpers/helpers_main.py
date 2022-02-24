@@ -1,7 +1,4 @@
-import datawarehouse_helper as dwh
-import datalake_helper as dl
-import datamart_helper as dm
-import local_db_helper as l
+from database import local_db_helper as l
 
 # DWH = dwh.DataWarehouseHelper()
 # DL = dl.DatalakeHelper()

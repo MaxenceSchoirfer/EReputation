@@ -33,7 +33,7 @@ class TwitterHelper:
         self.api = tweepy.API(self.auth)
         self.api.wait_on_rate_limit = True  # Important pour respecter les limites de la version gratuite
 
-    def generate_csv(self, client):
+    def generate_csv(self, client, alias):
         name = 'CocaCola'  # todo get this name from db (not dwh)
         alias = client
         date = datetime.today().strftime('%Y-%m-%d')
