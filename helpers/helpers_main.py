@@ -1,3 +1,4 @@
+from api.twitter_helper import TwitterHelper
 from database import local_db_helper as l
 
 # DWH = dwh.DataWarehouseHelper()
@@ -9,5 +10,8 @@ from database import local_db_helper as l
 
 # DL.download_files("COCA")
 
-L = l.LocalDBHelper()
-L.create_db()
+#L = l.LocalDBHelper()
+
+
+twitter = TwitterHelper()
+twitter.generate_csv("CocaCola","COCA")

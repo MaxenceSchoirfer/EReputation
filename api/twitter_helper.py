@@ -18,7 +18,7 @@ class TwitterHelper:
         ssl._create_default_https_context = ssl._create_unverified_context
 
         # Oauth keys
-        simp_path = 'app-config.properties'
+        simp_path = '../app-config.properties'
         abs_path = os.path.abspath(simp_path)
         properties = Properties()
         with open(abs_path, 'rb') as config_file:
@@ -33,12 +33,9 @@ class TwitterHelper:
         self.api = tweepy.API(self.auth)
         self.api.wait_on_rate_limit = True  # Important pour respecter les limites de la version gratuite
 
-    def generate_csv(self, client, alias):
-        name = 'CocaCola'  # todo get this name from db (not dwh)
-        alias = client
+    def generate_csv(self, keyword, alias):
         date = datetime.today().strftime('%Y-%m-%d')
-
-        replies_general = self.get_general_tweets(['Cocacola'], 'en')
+        replies_general = self.get_general_tweets([keyword], 'en')
 
         direct = 'C:/Dev/ERep/data/twitter/'
         name = '_TWITTER' + '_' + alias + '_' + date + '_UNK' + '_EN' + '.csv'
