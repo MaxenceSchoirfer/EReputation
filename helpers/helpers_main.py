@@ -14,4 +14,4 @@ from database import local_db_helper as l
 
 
 twitter = TwitterHelper()
-twitter.generate_csv("CocaCola","COCA")
+twitter.generate_csv("coca","COCA")

@@ -8,7 +8,7 @@ from data.dataset import Dataset
 from helpers.datalake_helper import DatalakeHelper
 from helpers.datamart_helper import DataMartHelper
 from helpers.datawarehouse_helper import DataWarehouseHelper
-from datetime import date
+from datetime import date, datetime
 
 from database.local_db_helper import LocalDBHelper
 
@@ -104,7 +104,7 @@ except Exception as e:
     logging.error("Error occurred during Fetching Helpers initialization : " + str(e))
     sys.exit(-1)
 
-date = "2022-21-02"
+date = datetime.today().strftime('%Y-%m-%d')
 clients = {}
 for client in local_db_helper.get_active_clients():
     clients[client[1]] = client[2]
