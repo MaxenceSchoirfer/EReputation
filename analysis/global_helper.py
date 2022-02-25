@@ -45,7 +45,7 @@ def analysis(dataset):
     while len(dataset.frequencies) > 100:
         frequency_helper.remove_low_frequencies(dataset.frequencies, i)
         i +=1
-    print(i)
+    #print(i)
 
     freq = {}
     for key, values in dataset.frequencies.items():
@@ -59,11 +59,11 @@ def analysis(dataset):
     # for key, values in reversed(sorted(dataset.frequencies.items(), key=lambda item: item[1])):
     #     if True:
     #         # print(key + " : " + str(values[0]))
-    print(len(dataset.frequencies))
+    # print(len(dataset.frequencies))
 
     storage(dataset)
     end = time.time()
 
-    print()
-    print("Sentiment Analysis :", filename)
-    print("Analysis Execution Time : ", end - start, "second(s)")
+    # print()
+    # print("Sentiment Analysis :", dataset.)
+    # print("Analysis Execution Time : ", end - start, "second(s)")

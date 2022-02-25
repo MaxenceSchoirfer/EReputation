@@ -9,7 +9,7 @@ class DataMartHelper:
     def __init__(self, client):
         self.i = 0
         properties = Properties()
-        with open('../app-config.properties', 'rb') as config_file:
+        with open('app-config.properties', 'rb') as config_file:
             properties.load(config_file)
         self.id_twitter = properties.get("DWH_TWITTER_ID")[0]
         self.mydb = mysql.connector.connect(

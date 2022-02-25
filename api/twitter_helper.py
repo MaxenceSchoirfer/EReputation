@@ -8,8 +8,8 @@ from datetime import datetime
 
 from jproperties import Properties
 
-MAX_TWEETS = math.inf
-#MAX_TWEETS = 100
+#MAX_TWEETS = math.inf
+MAX_TWEETS = 1000
 
 
 class TwitterHelper:
@@ -18,7 +18,7 @@ class TwitterHelper:
         ssl._create_default_https_context = ssl._create_unverified_context
 
         # Oauth keys
-        simp_path = '../app-config.properties'
+        simp_path = 'app-config.properties'
         abs_path = os.path.abspath(simp_path)
         properties = Properties()
         with open(abs_path, 'rb') as config_file:
@@ -41,7 +41,7 @@ class TwitterHelper:
         name = '_TWITTER' + '_' + alias + '_' + date + '_UNK' + '_EN' + '.csv'
         path = direct + name
         with open(path, 'w', newline='', encoding="utf-8") as f:
-            csv_writer = csv.DictWriter(f, fieldnames=['Text'])
+            csv_writer = csv.DictWriter(f, fieldnames=['text'])
             csv_writer.writeheader()
             for tweet in replies_general:
                 row = {'Text': tweet.text.replace('\n', ' ')}

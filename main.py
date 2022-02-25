@@ -12,16 +12,14 @@ from datetime import date, datetime
 
 from database.local_db_helper import LocalDBHelper
 
-PRINT = True
-
 
 def log(message, level):
+    if True:
+        print(message)
     if level == "INFO":
         logging.info(message)
     elif level == "ERROR":
         logging.error(message)
-    if PRINT:
-        print(message)
 
 
 def processing(client, alias, id_date):
@@ -29,7 +27,7 @@ def processing(client, alias, id_date):
     try:
         message = "Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]"
         log(message, "INFO")
-        twitter_helper.generate_csv(client, alias)
+    #  twitter_helper.generate_csv(client, alias)
     except Exception as e:
         message = "Error occurred during fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]" + str(
             e)
@@ -43,7 +41,7 @@ def processing(client, alias, id_date):
         message = "Start fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "]"
         log(message, "INFO")
 
-        datalake_helper.download_files(alias)
+        # datalake_helper.download_files(alias)
         files = datalake_helper.get_filenames(alias)
     except Exception as e:
         message = "Error occurred during fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "]" + str(
@@ -59,7 +57,7 @@ def processing(client, alias, id_date):
             log(message, "INFO")
             dataset = Dataset(file, False)
             global_helper.analysis(dataset)
-        except Exception as e:
+        except FileExistsError as e:
             message = "Error occurred during analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "]" + str(
                 e)
             log(message, "ERROR")
@@ -101,14 +99,14 @@ try:
     datalake_helper = DatalakeHelper()
     dwh_helper = DataWarehouseHelper()
 except Exception as e:
-    logging.error("Error occurred during Fetching Helpers initialization : " + str(e))
+    message = "Error occurred during Fetching Helpers initialization : " + str(e)
+    log(message, "ERROR")
     sys.exit(-1)
 
 date = datetime.today().strftime('%Y-%m-%d')
 clients = {}
 for client in local_db_helper.get_active_clients():
     clients[client[1]] = client[2]
-print(clients)
 
 id_date = dwh_helper.get_id_date(date)
 threads = []

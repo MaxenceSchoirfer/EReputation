@@ -1,3 +1,4 @@
+import os
 import re
 import enchant
 from nltk import RegexpTokenizer
@@ -7,8 +8,10 @@ from pattern.text.en import singularize
 
 
 def get_stopwords():
+    simp_path = 'analysis/stopwords.txt'
+    abs_path = os.path.abspath(simp_path)
     words = set(stopwords.words('english'))
-    with open('stopwords.txt') as f:
+    with open(abs_path) as f:
         lines = f.readlines()
         for w in lines:
             words.add(re.sub("\n", "", w))

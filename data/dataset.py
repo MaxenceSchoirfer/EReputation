@@ -19,7 +19,7 @@ class Dataset:
             self.language = re.split("\.", chunks[5])[0]
 
         # ---------------- EXTRACT DAT --------------------------
-        with open(filename, 'r') as f:
+        with open(filename, 'r', errors="ignore") as f:
             # data_list = list(csv.reader(f, delimiter=";"))
             reader = csv.DictReader(f, delimiter=";")
             data = []
