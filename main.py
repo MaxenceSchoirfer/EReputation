@@ -2,7 +2,7 @@ import logging
 import sys
 import threading
 
-from analysis import global_helper
+from analysis import analysis_helper
 from api.twitter_helper import TwitterHelper
 from data.dataset import Dataset
 from helpers.datalake_helper import DatalakeHelper
@@ -41,7 +41,7 @@ def processing(client, alias, id_date):
         message = "Start fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "]"
         log(message, "INFO")
 
-        # datalake_helper.download_files(alias)
+        datalake_helper.download_files(alias)
         files = datalake_helper.get_filenames(alias)
     except Exception as e:
         message = "Error occurred during fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "]" + str(
@@ -56,7 +56,7 @@ def processing(client, alias, id_date):
             message = "Start analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "]"
             log(message, "INFO")
             dataset = Dataset(file, False)
-            global_helper.analysis(dataset)
+            analysis_helper.analysis(dataset)
         except FileExistsError as e:
             message = "Error occurred during analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "]" + str(
                 e)
