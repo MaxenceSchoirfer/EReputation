@@ -6,22 +6,30 @@ from helpers.datawarehouse_helper import DataWarehouseHelper
 
 class DataMartHelper:
 
-    def __init__(self, client):
+    def __init__(self, alias, db_name, db_url, db_user, port):
         self.i = 0
         properties = Properties()
         with open('app-config.properties', 'rb') as config_file:
             properties.load(config_file)
         self.id_twitter = properties.get("DWH_TWITTER_ID")[0]
+        # self.mydb = mysql.connector.connect(
+        #     host=properties.get("DM_COCA_HOST")[0],
+        #     user=properties.get("DM_COCA_USER")[0],
+        #     port=properties.get("DM_COCA_PORT")[0],
+        #     password=properties.get("DM_COCA_PASSWORD")[0],
+        #     database=properties.get("DM_COCA_DATABASE_NAME")[0]
+        # )
+        field_name = db_name + "_password"
         self.mydb = mysql.connector.connect(
-            host=properties.get("DM_COCA_HOST")[0],
-            user=properties.get("DM_COCA_USER")[0],
-            port=properties.get("DM_COCA_PORT")[0],
-            password=properties.get("DM_COCA_PASSWORD")[0],
-            database=properties.get("DM_COCA_DATABASE_NAME")[0]
+            host=db_url,
+            user=db_user,
+            port=port,
+            password=properties.get(field_name.upper())[0],
+            database=db_name
         )
         self.cursor = self.mydb.cursor()
         self.dwh = DataWarehouseHelper()
-        self.id_client = self.dwh.get_id_client(client)
+        self.id_client = self.dwh.get_id_client(alias)
 
     def create_dim_from_dwh(self):
         self.__create_dates_from_dwh()

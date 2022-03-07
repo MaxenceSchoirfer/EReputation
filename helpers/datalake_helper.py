@@ -1,4 +1,6 @@
 import os
+import re
+
 import boto3
 from jproperties import Properties
 
@@ -15,26 +17,21 @@ class DatalakeHelper:
                                    aws_access_key_id=properties.get("AWS_ACCESS_KEY_ID"),
                                    aws_secret_access_key=properties.get("AWS_SECRET_ACCESS_KEY"))
 
-    # todo download all files for specific client on the directory on the data lake
-    def download_files(self, client):
-        self.client.download_file('e-reputation', 'Twitter/Twitter_CocaCola_18-01-2022_UNK_EN.csv',
-                                  'twitter/train.csv')
-        # s3 = self.client('s3')
-        # s3 = self.session.resource('s3')
-        # bucket = s3.Bucket('my-reputation')
-        #
-        # #  bucket = self.client.Bucket('my-reputation')
-        # for obj in bucket.objects.filter(Prefix="Twitter/"):
-        #     # for obj in bucket.objects.filter(Delimiter='/', Prefix='Twitter/'):
-        #     print(obj)
+    def upload_file(self, path):
+        local_path = os.path.abspath(path)
+        chunks = re.split("/", path)
+        datalake_path = 'Twitter/' + str(chunks[-1])
+        # self.client.upload_file(local_path, 'e-reputation', datalake_path)
+        self.client.upload_file('C://Dev//ERep//data//twitter//_TWITTER_COCA_2022-02-25_UNK_EN.csv', 'e-reputation',
+                                'Twitter/_TWITTER_COCA_2022-02-25_UNK_EN.csv')
 
     @staticmethod
-    def get_filenames(alias):
+    def get_local_filenames(alias, date):
         simp_path = 'data/twitter'
         abs_path = os.path.abspath(simp_path)
         filenames = []
         with os.scandir(abs_path) as directory:
             for file in directory:
-                if str(file).__contains__(alias):
+                if str(file).__contains__(alias) and str(file).__contains__(date):
                     filenames.append(simp_path + "/" + file.__getattribute__("name"))
         return filenames

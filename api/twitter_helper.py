@@ -44,7 +44,7 @@ class TwitterHelper:
             csv_writer = csv.DictWriter(f, fieldnames=['text'])
             csv_writer.writeheader()
             for tweet in replies_general:
-                row = {'Text': tweet.text.replace('\n', ' ')}
+                row = {'text': tweet.text.replace('\n', ' ')}
                 csv_writer.writerow(row)
 
     def get_general_tweets(self, keywords, language):

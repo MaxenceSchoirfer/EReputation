@@ -20,5 +20,5 @@ class LocalDBHelper:
 
     def insert_client(self, alias, keyword, active):
         self.cursor.execute("INSERT INTO client (id_client, alias, keyword, active) VALUES (null,?,?,?)",
-                            (alias, keyword, active))  # % name, alias, active)
+                            (alias, keyword, active))
         self.connection.commit()

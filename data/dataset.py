@@ -17,6 +17,7 @@ class Dataset:
             self.date = chunks[3]
             self.country = chunks[4]
             self.language = re.split("\.", chunks[5])[0]
+            self.file = filename
 
         # ---------------- EXTRACT DAT --------------------------
         with open(filename, 'r', errors="ignore") as f:
