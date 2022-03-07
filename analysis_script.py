@@ -22,18 +22,7 @@ def log(message, level):
         logging.error(message)
 
 
-def processing(alias, keyword):
-    # --------------------------- API CALL ------------------------------------------------------
-    try:
-        message = "Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]"
-        log(message, "INFO")
-        twitter_helper.generate_csv(keyword, alias)
-    except Exception as e:
-        message = "Error occurred during fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
-            e)
-        log(message, "ERROR")
-        return
-
+def processing(alias):
     # ----------------------------------------  DOWNLOAD FILES LOCALLY -------------------------------------------------------------
     try:
         message = "Start uploading files on the datalake [source : TWITTER, client : " + alias + ", date : " + date + "]"
@@ -86,7 +75,19 @@ clients = []
 datasets = []
 for client in local_db_helper.get_active_clients():
     clients.append(client[1])
-    threads.append(threading.Thread(target=processing, args=(client[1], client[2],)))
+    alias = client[1]
+    keyword = client[2]
+
+    try:
+        message = "Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]"
+        log(message, "INFO")
+        twitter_helper.generate_csv(keyword, alias)
+    except Exception as e:
+        message = "Error occurred during fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
+            e)
+        log(message, "ERROR")
+
+    threads.append(threading.Thread(target=processing, args=(client[1], )))
 
 for t in threads:
     t.start()
