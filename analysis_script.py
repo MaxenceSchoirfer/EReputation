@@ -19,55 +19,53 @@ def log(message, level):
         logging.error(message)
 
 
-def processing(alias):
+def processing(alias, keyword):
     # ---------------------------------------- CALL API ---------------------------------------
 
     try:
-        message = "Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]"
-        log(message, "INFO")
+        log("Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]", "INFO")
         twitter_helper.generate_csv(keyword, alias)
     except Exception as e:
-        message = "Error occurred during fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
-            e)
-        log(message, "ERROR")
+        log("Error occurred during fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
+            e), "ERROR")
+        return
 
-    # ----------------------------------------  DOWNLOAD FILES LOCALLY -------------------------------------------------------------
+        # ----------------------------------------  DOWNLOAD FILES LOCALLY -------------------------------------------------------------
     try:
-        message = "Start uploading files on the datalake [source : TWITTER, client : " + alias + ", date : " + date + "]"
-        log(message, "INFO")
-
+        log("Start uploading files on the datalake [source : TWITTER, client : " + alias + ", date : " + date + "]",
+            "INFO")
         files = datalake_helper.get_local_filenames(alias, date)
+
+        # todo try to correct error during uploading
         # for file in files:
         #     datalake_helper.upload_file(file)
 
-    except FileExistsError as e:
-        message = "Error occurred during fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
-            e)
-        log(message, "ERROR")
+    except Exception as e:
+        log("Error occurred during fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
+            e), "ERROR")
         return
 
     # ------------------------------------- ANALYSIS ------------------------------------------------------------------
 
     for file in files:
         try:
-            message = "Start analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "]"
-            log(message, "INFO")
+            log("Start analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "]",
+                "INFO")
             dataset = Dataset(file, False)
             analysis_helper.analysis(dataset)
-        except FileExistsError as e:
-            message = "Error occurred during analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
-                e)
-            log(message, "ERROR")
-            return
+        except Exception as e:
+            log("Error occurred during analysis [file : " + file + ", source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
+                e), "ERROR")
+            continue
 
         try:
-            message = "Start storage of analyse results [file : " + dataset.file + ", source : TWITTER, client : " + dataset.client + ", date : " + date + "]"
-            log(message, "INFO")
+            log("Start storage of analyse results [file : " + dataset.file + ", source : TWITTER, client : " + dataset.client + ", date : " + date + "]",
+                "INFO")
             dwh_helper.save_dataset_analysis(dataset)
         except Exception as e:
-            message = "Error occurred during storage of analyse results  [file : " + dataset.file + ", source : TWITTER, client : " + dataset.client + ", date : " + date + "] -> " + str(
-                e)
-            log(message, "ERROR")
+            log("Error occurred during storage of analyse results  [file : " + dataset.file + ", source : TWITTER, client : " + dataset.client + ", date : " + date + "] -> " + str(
+                e), "ERROR")
+            continue
 
 
 logfile = "log/ANALYSIS_" + str(date.today()) + ".log"
@@ -79,13 +77,9 @@ try:
     datalake_helper = DatalakeHelper()
     dwh_helper = DataWarehouseHelper()
 except Exception as e:
-    message = "Error occurred during Fetching Helpers initialization -> " + str(e)
-    log(message, "ERROR")
+    log("Error occurred during Fetching Helpers initialization -> " + str(e), "ERROR")
     sys.exit(-1)
 
 date = datetime.today().strftime('%Y-%m-%d')
 for client in local_db_helper.get_active_clients():
-    clients.append(client[1])
-    alias = client[1]
-    keyword = client[2]
-    processing(client[1])
+    processing(client[1], client[2])
