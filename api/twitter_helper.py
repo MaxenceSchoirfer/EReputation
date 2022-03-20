@@ -8,8 +8,8 @@ from datetime import datetime
 
 from jproperties import Properties
 
-#MAX_TWEETS = math.inf
-MAX_TWEETS = 1000
+# MAX_TWEETS = math.inf
+MAX_TWEETS = 10
 
 
 class TwitterHelper:
@@ -37,10 +37,10 @@ class TwitterHelper:
         date = datetime.today().strftime('%Y-%m-%d')
         replies_general = self.get_general_tweets([keyword], 'en')
 
-        direct = 'C:/Dev/ERep/data/twitter/'
+        simp_path = 'data/twitter/'
         name = '_TWITTER' + '_' + alias + '_' + date + '_UNK' + '_EN' + '.csv'
-        path = direct + name
-        with open(path, 'w', newline='', encoding="utf-8") as f:
+        abs_path = os.path.abspath(simp_path + name)
+        with open(abs_path, 'w', newline='', encoding="utf-8") as f:
             csv_writer = csv.DictWriter(f, fieldnames=['text'])
             csv_writer.writeheader()
             for tweet in replies_general:

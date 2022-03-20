@@ -48,7 +48,4 @@ for client in local_db_helper.get_active_clients():
     db_url = client[5]
     db_user = client[6]
     port = client[7]
-    if alias == "NETFLIX":
-        continue
-    else:
-        processing(alias, db_name, db_url, db_user, port, id_date)
+    processing(alias, db_name, db_url, db_user, port, id_date)

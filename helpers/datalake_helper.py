@@ -21,9 +21,9 @@ class DatalakeHelper:
         local_path = os.path.abspath(path)
         chunks = re.split("/", path)
         datalake_path = 'Twitter/' + str(chunks[-1])
-        # self.client.upload_file(local_path, 'e-reputation', datalake_path)
-        self.client.upload_file('C://Dev//ERep//data//twitter//_TWITTER_COCA_2022-02-25_UNK_EN.csv', 'e-reputation',
-                                'Twitter/_TWITTER_COCA_2022-02-25_UNK_EN.csv')
+        self.client.upload_file(local_path, 'e-reputation', datalake_path)
+        #self.client.upload_file('C://Dev//ERep//data//twitter//_TWITTER_COCA_2022-02-25_UNK_EN.csv', 'e-reputation',
+           #                     'Twitter/_TWITTER_COCA_2022-02-25_UNK_EN.csv')
 
     @staticmethod
     def get_local_filenames(alias, date):

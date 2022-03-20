@@ -25,7 +25,7 @@ def processing(alias, keyword):
     try:
         log("Start fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "]", "INFO")
         twitter_helper.generate_csv(keyword, alias)
-    except Exception as e:
+    except FileExistsError as e:
         log("Error occurred during fetching data from API [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(
             e), "ERROR")
         return
@@ -35,10 +35,6 @@ def processing(alias, keyword):
         log("Start uploading files on the datalake [source : TWITTER, client : " + alias + ", date : " + date + "]",
             "INFO")
         files = datalake_helper.get_local_filenames(alias, date)
-
-        # todo try to correct error during uploading
-        # for file in files:
-        #     datalake_helper.upload_file(file)
 
     except Exception as e:
         log("Error occurred during fetching files from datalake [source : TWITTER, client : " + alias + ", date : " + date + "] -> " + str(

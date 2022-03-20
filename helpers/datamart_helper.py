@@ -20,6 +20,7 @@ class DataMartHelper:
         #     database=properties.get("DM_COCA_DATABASE_NAME")[0]
         # )
         field_name = db_name + "_password"
+        print()
         self.mydb = mysql.connector.connect(
             host=db_url,
             user=db_user,
@@ -27,6 +28,7 @@ class DataMartHelper:
             password=properties.get(field_name.upper())[0],
             database=db_name
         )
+        print(field_name.upper())
         self.cursor = self.mydb.cursor()
         self.dwh = DataWarehouseHelper()
         self.id_client = self.dwh.get_id_client(alias)

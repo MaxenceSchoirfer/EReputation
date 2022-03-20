@@ -4,7 +4,6 @@ import enchant
 from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from pattern.text.en import singularize
 
 
 def get_stopwords():
@@ -52,8 +51,6 @@ class FrequencyHelper:
                     break
             if len(word) < 2:
                 return None
-        if not word.endswith("ss"):
-            word = singularize(word)
 
         return word
 
